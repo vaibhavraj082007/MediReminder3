@@ -1,914 +1,854 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediReminder — Smart Medicine Reminder App</title>
-    <meta name="description" content="MediReminder helps you manage medications, track adherence, and keep caregivers informed. Never miss a dose again.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --green-50: #E8F5E9;
-            --green-100: #C8E6C9;
-            --green-200: #A5D6A7;
-            --green-300: #81C784;
-            --green-400: #66BB6A;
-            --green-500: #4CAF50;
-            --green-600: #43A047;
-            --green-700: #388E3C;
-            --green-800: #2E7D32;
-            --green-900: #1B5E20;
-            --dark: #0D1B0F;
-            --dark-card: #132916;
-            --dark-surface: #0A1F0D;
-            --text-primary: #E8F5E9;
-            --text-secondary: #A5D6A7;
-            --text-muted: #6B8F6E;
-            --glow: 0 0 40px rgba(76, 175, 80, 0.15);
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--dark);
-            color: var(--text-primary);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* ---- ANIMATED BACKGROUND ---- */
-        .bg-glow {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
-        }
-
-        .bg-glow .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            animation: float 20s ease-in-out infinite;
-        }
-
-        .bg-glow .orb:nth-child(1) {
-            width: 600px;
-            height: 600px;
-            background: rgba(76, 175, 80, 0.08);
-            top: -200px;
-            right: -100px;
-            animation-delay: 0s;
-        }
-
-        .bg-glow .orb:nth-child(2) {
-            width: 400px;
-            height: 400px;
-            background: rgba(129, 199, 132, 0.06);
-            bottom: 200px;
-            left: -100px;
-            animation-delay: -7s;
-        }
-
-        .bg-glow .orb:nth-child(3) {
-            width: 300px;
-            height: 300px;
-            background: rgba(56, 142, 60, 0.07);
-            top: 50%;
-            left: 50%;
-            animation-delay: -14s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) scale(1); }
-            33% { transform: translateY(-30px) scale(1.05); }
-            66% { transform: translateY(20px) scale(0.95); }
-        }
-
-        /* ---- NAVIGATION ---- */
-        nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 100;
-            padding: 16px 0;
-            backdrop-filter: blur(20px);
-            background: rgba(13, 27, 15, 0.8);
-            border-bottom: 1px solid rgba(76, 175, 80, 0.1);
-        }
-
-        .nav-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: var(--text-primary);
-        }
-
-        .nav-logo .pill-icon {
-            font-size: 28px;
-            animation: pulse 3s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
-
-        .nav-logo span {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 32px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: var(--green-400);
-        }
-
-        .nav-cta {
-            background: var(--green-700);
-            color: white !important;
-            padding: 10px 24px;
-            border-radius: 12px;
-            font-weight: 600 !important;
-            transition: all 0.3s !important;
-        }
-
-        .nav-cta:hover {
-            background: var(--green-600) !important;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
-        }
-
-        /* ---- HERO ---- */
-        .hero {
-            position: relative;
-            z-index: 1;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding: 120px 24px 80px;
-        }
-
-        .hero-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 80px;
-            align-items: center;
-        }
-
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(76, 175, 80, 0.1);
-            border: 1px solid rgba(76, 175, 80, 0.2);
-            padding: 6px 16px;
-            border-radius: 100px;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--green-300);
-            margin-bottom: 24px;
-        }
-
-        .hero h1 {
-            font-size: clamp(40px, 5.5vw, 68px);
-            font-weight: 900;
-            line-height: 1.08;
-            letter-spacing: -2px;
-            margin-bottom: 24px;
-        }
-
-        .hero h1 .gradient {
-            background: linear-gradient(135deg, var(--green-300), var(--green-500), #81d4a0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero p {
-            font-size: 18px;
-            color: var(--text-secondary);
-            max-width: 520px;
-            margin-bottom: 40px;
-            line-height: 1.7;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .btn-primary {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: linear-gradient(135deg, var(--green-700), var(--green-800));
-            color: white;
-            padding: 16px 32px;
-            border-radius: 16px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s;
-            border: 1px solid rgba(76, 175, 80, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(76, 175, 80, 0.3);
-        }
-
-        .btn-secondary {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
-            padding: 16px 32px;
-            border-radius: 16px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        /* Phone mockup */
-        .phone-mockup {
-            position: relative;
-            display: flex;
-            justify-content: center;
-        }
-
-        .phone {
-            width: 280px;
-            height: 560px;
-            background: linear-gradient(180deg, #1a3a1e 0%, #132916 100%);
-            border-radius: 40px;
-            border: 3px solid rgba(76, 175, 80, 0.2);
-            box-shadow: var(--glow), 0 25px 60px rgba(0,0,0,0.5);
-            overflow: hidden;
-            position: relative;
-        }
-
-        .phone::before {
-            content: '';
-            position: absolute;
-            top: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 25px;
-            background: var(--dark);
-            border-radius: 20px;
-            z-index: 10;
-        }
-
-        .phone-screen {
-            padding: 50px 20px 20px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .phone-header {
-            text-align: center;
-            margin-bottom: 8px;
-        }
-
-        .phone-header .app-icon {
-            font-size: 36px;
-            margin-bottom: 4px;
-        }
-
-        .phone-header h3 {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--green-300);
-        }
-
-        .phone-header p {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-
-        .phone-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(76, 175, 80, 0.15);
-            border-radius: 14px;
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            animation: slideUp 0.8s ease-out forwards;
-            opacity: 0;
-        }
-
-        .phone-card:nth-child(2) { animation-delay: 0.2s; }
-        .phone-card:nth-child(3) { animation-delay: 0.4s; }
-        .phone-card:nth-child(4) { animation-delay: 0.6s; }
-
-        @keyframes slideUp {
-            to { opacity: 1; transform: translateY(0); }
-            from { opacity: 0; transform: translateY(20px); }
-        }
-
-        .phone-card .icon {
-            font-size: 24px;
-            width: 42px;
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(76, 175, 80, 0.1);
-            border-radius: 12px;
-            flex-shrink: 0;
-        }
-
-        .phone-card .info h4 {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .phone-card .info p {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin: 0;
-        }
-
-        .phone-card .status {
-            margin-left: auto;
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-
-        .status-taken {
-            background: rgba(76, 175, 80, 0.15);
-            color: var(--green-400);
-        }
-
-        .status-pending {
-            background: rgba(255, 193, 7, 0.15);
-            color: #FFD54F;
-        }
-
-        .status-missed {
-            background: rgba(244, 67, 54, 0.15);
-            color: #EF5350;
-        }
-
-        /* ---- FEATURES SECTION ---- */
-        section {
-            position: relative;
-            z-index: 1;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 64px;
-        }
-
-        .section-header h2 {
-            font-size: clamp(32px, 4vw, 48px);
-            font-weight: 800;
-            letter-spacing: -1px;
-            margin-bottom: 16px;
-        }
-
-        .section-header p {
-            color: var(--text-secondary);
-            font-size: 17px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .features {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 80px 24px 100px;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-        }
-
-        .feature-card {
-            background: linear-gradient(180deg, rgba(19, 41, 22, 0.8), rgba(13, 27, 15, 0.8));
-            border: 1px solid rgba(76, 175, 80, 0.1);
-            border-radius: 24px;
-            padding: 36px;
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--green-500), transparent);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(76, 175, 80, 0.25);
-            box-shadow: var(--glow);
-        }
-
-        .feature-card:hover::before {
-            opacity: 1;
-        }
-
-        .feature-icon {
-            font-size: 40px;
-            margin-bottom: 20px;
-            display: block;
-        }
-
-        .feature-card h3 {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--text-primary);
-        }
-
-        .feature-card p {
-            color: var(--text-muted);
-            font-size: 15px;
-            line-height: 1.6;
-        }
-
-        /* ---- TECH STACK ---- */
-        .tech-section {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px 100px;
-        }
-
-        .tech-grid {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .tech-chip {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(19, 41, 22, 0.8);
-            border: 1px solid rgba(76, 175, 80, 0.15);
-            border-radius: 16px;
-            padding: 16px 28px;
-            transition: all 0.3s;
-        }
-
-        .tech-chip:hover {
-            border-color: rgba(76, 175, 80, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .tech-chip .emoji {
-            font-size: 24px;
-        }
-
-        .tech-chip .tech-info h4 {
-            font-size: 15px;
-            font-weight: 600;
-        }
-
-        .tech-chip .tech-info p {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        /* ---- SETUP SECTION ---- */
-        .setup {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px 100px;
-        }
-
-        .setup-steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 24px;
-        }
-
-        .step-card {
-            background: rgba(19, 41, 22, 0.6);
-            border: 1px solid rgba(76, 175, 80, 0.1);
-            border-radius: 20px;
-            padding: 32px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .step-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--glow);
-        }
-
-        .step-number {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--green-700), var(--green-900));
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: 800;
-            margin: 0 auto 20px;
-        }
-
-        .step-card h3 {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .step-card p {
-            font-size: 14px;
-            color: var(--text-muted);
-            line-height: 1.6;
-        }
-
-        .step-card code {
-            display: block;
-            background: rgba(0,0,0,0.3);
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 13px;
-            color: var(--green-300);
-            margin-top: 12px;
-            word-break: break-all;
-            font-family: 'SF Mono', 'Fira Code', monospace;
-        }
-
-        /* ---- FOOTER ---- */
-        footer {
-            position: relative;
-            z-index: 1;
-            border-top: 1px solid rgba(76, 175, 80, 0.1);
-            padding: 40px 24px;
-            text-align: center;
-        }
-
-        footer p {
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        footer a {
-            color: var(--green-400);
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* ---- RESPONSIVE ---- */
-        @media (max-width: 768px) {
-            .hero-inner {
-                grid-template-columns: 1fr;
-                gap: 48px;
-                text-align: center;
-            }
-
-            .hero p {
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            .hero-buttons {
-                justify-content: center;
-            }
-
-            .phone-mockup {
-                order: -1;
-            }
-
-            .phone {
-                width: 240px;
-                height: 480px;
-            }
-
-            .nav-links {
-                display: none;
-            }
-
-            .features-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MediReminder">
+<meta name="theme-color" content="#2E7D32">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232E7D32'/><text y='70' x='50' text-anchor='middle' font-size='60'>💊</text></svg>">
+<title>MediReminder</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --g50:#E8F5E9;--g100:#C8E6C9;--g200:#A5D6A7;--g300:#81C784;
+  --g400:#66BB6A;--g500:#4CAF50;--g600:#43A047;--g700:#388E3C;
+  --g800:#2E7D32;--g900:#1B5E20;
+  --bg:#0D1B0F;--card:#132916;--surface:#0F2012;
+  --t1:#E8F5E9;--t2:#A5D6A7;--t3:#6B8F6E;
+  --red:#EF5350;--red-bg:rgba(239,83,80,.12);
+  --orange:#FFA726;--orange-bg:rgba(255,167,38,.12);
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+input,button,select,textarea{font-family:inherit;outline:none}
+
+/* ---- SCREENS ---- */
+.screen{position:absolute;top:0;left:0;width:100%;height:100%;overflow-y:auto;overflow-x:hidden;
+  opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;transform:translateX(30px);
+  -webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bottom))}
+.screen.active{opacity:1;pointer-events:auto;transform:translateX(0)}
+
+/* ---- SPLASH ---- */
+#splash{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#0D1B0F 0%,#1B3A1F 50%,#0D1B0F 100%);z-index:999}
+#splash .logo{font-size:80px;animation:bounce 1.5s ease infinite}
+#splash h1{font-size:28px;font-weight:800;margin-top:16px;letter-spacing:-1px}
+#splash p{color:var(--t3);font-size:14px;margin-top:8px}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+/* ---- AUTH ---- */
+#auth{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.auth-box{width:100%;max-width:380px}
+.auth-box .logo-area{text-align:center;margin-bottom:36px}
+.auth-box .logo-area span{font-size:56px;display:block;margin-bottom:8px}
+.auth-box .logo-area h2{font-size:26px;font-weight:800;letter-spacing:-1px}
+.auth-box .logo-area p{color:var(--t3);font-size:14px;margin-top:4px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--t2);margin-bottom:6px}
+.field input{width:100%;padding:14px 16px;background:var(--surface);border:1.5px solid rgba(76,175,80,.15);
+  border-radius:14px;color:var(--t1);font-size:15px;transition:border .3s}
+.field input:focus{border-color:var(--g500)}
+.field input::placeholder{color:var(--t3)}
+.btn{width:100%;padding:15px;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;
+  transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-green{background:linear-gradient(135deg,var(--g700),var(--g800));color:#fff}
+.btn-green:active{transform:scale(.97);opacity:.9}
+.btn-outline{background:transparent;border:1.5px solid rgba(255,255,255,.12);color:var(--t1);margin-top:12px}
+.btn-outline:active{background:rgba(255,255,255,.05)}
+.auth-error{background:var(--red-bg);border:1px solid rgba(239,83,80,.2);border-radius:12px;
+  padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--red);display:none}
+.auth-error.show{display:block}
+.forgot-link{text-align:center;margin-top:16px;font-size:13px;color:var(--t3)}
+.forgot-link a{color:var(--g400);text-decoration:none;cursor:pointer}
+
+/* ---- DASHBOARD ---- */
+.dash-header{background:linear-gradient(135deg,#1B5E20,#2E7D32,#388E3C);
+  padding:calc(16px + var(--safe-top)) 20px 20px;border-radius:0 0 28px 28px}
+.dash-header .top{display:flex;align-items:center;justify-content:space-between}
+.dash-header .brand{display:flex;align-items:center;gap:10px}
+.dash-header .brand span{font-size:28px}
+.dash-header .brand h2{font-size:20px;font-weight:800}
+.dash-header .logout-btn{background:rgba(255,255,255,.15);border:none;color:#fff;
+  padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer}
+.dash-summary{margin-top:14px;font-size:14px;color:rgba(255,255,255,.85);font-weight:500}
+
+.dash-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 16px 0}
+.dash-action{background:var(--card);border:1px solid rgba(76,175,80,.1);border-radius:16px;
+  padding:16px;cursor:pointer;transition:all .2s;text-align:center}
+.dash-action:active{transform:scale(.96)}
+.dash-action .icon{font-size:28px;margin-bottom:6px}
+.dash-action .label{font-size:12px;font-weight:600;color:var(--t2)}
+
+.section-title{padding:20px 16px 10px;font-size:15px;font-weight:700;color:var(--t2)}
+.med-list{padding:0 16px}
+.med-empty{text-align:center;padding:40px 20px;color:var(--t3);font-size:14px}
+
+/* ---- MEDICINE CARD ---- */
+.med-card{background:var(--card);border:1px solid rgba(76,175,80,.1);border-radius:20px;
+  padding:18px;margin-bottom:12px;transition:all .2s}
+.med-card.green{border-left:4px solid var(--g400)}
+.med-card.orange{border-left:4px solid var(--orange)}
+.med-card.red{border-left:4px solid var(--red)}
+.med-card.grey{border-left:4px solid #757575;opacity:.7}
+.med-card .name{font-size:17px;font-weight:700}
+.med-card .detail{font-size:13px;color:var(--t3);margin-top:4px}
+.med-card .warning{font-size:12px;color:var(--red);font-weight:600;margin-top:6px;
+  background:var(--red-bg);padding:6px 12px;border-radius:8px;display:inline-block}
+.med-card .actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.med-card .actions button{flex:1;padding:10px 8px;border:none;border-radius:12px;font-size:12px;
+  font-weight:700;cursor:pointer;min-width:70px;transition:all .15s}
+.med-card .actions button:active{transform:scale(.95)}
+.btn-taken{background:rgba(76,175,80,.15);color:var(--g400)}
+.btn-taken.locked{opacity:.5;pointer-events:none}
+.btn-skip{background:rgba(255,167,38,.12);color:var(--orange)}
+.btn-delete{background:rgba(239,83,80,.1);color:var(--red)}
+
+/* ---- ADD MEDICINE ---- */
+.page-header{display:flex;align-items:center;gap:12px;
+  padding:calc(16px + var(--safe-top)) 20px 16px;
+  background:linear-gradient(135deg,#1B5E20,#2E7D32);border-radius:0 0 24px 24px}
+.page-header .back{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;
+  border-radius:10px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.page-header h2{font-size:18px;font-weight:700}
+.form-body{padding:20px 16px}
+.form-body .field{margin-bottom:14px}
+.form-body .field input,.form-body .field select{width:100%;padding:14px 16px;background:var(--surface);
+  border:1.5px solid rgba(76,175,80,.15);border-radius:14px;color:var(--t1);font-size:15px}
+.picker-btn{width:100%;padding:14px 16px;background:var(--surface);
+  border:1.5px solid rgba(76,175,80,.15);border-radius:14px;color:var(--t2);font-size:14px;
+  font-weight:500;cursor:pointer;text-align:left}
+.picker-btn.selected{color:var(--g400);border-color:var(--g500)}
+
+/* ---- CALENDAR ---- */
+.cal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:16px}
+.cal-stat{border-radius:16px;padding:16px;text-align:center}
+.cal-stat.taken{background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.2)}
+.cal-stat.missed{background:var(--red-bg);border:1px solid rgba(239,83,80,.15)}
+.cal-stat.score{background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.12)}
+.cal-stat .num{font-size:28px;font-weight:800}
+.cal-stat .lbl{font-size:11px;font-weight:600;color:var(--t3);margin-top:4px}
+.cal-date-picker{padding:0 16px}
+.cal-date-picker input[type="date"]{width:100%;padding:14px 16px;background:var(--surface);
+  border:1.5px solid rgba(76,175,80,.15);border-radius:14px;color:var(--t1);font-size:15px;
+  color-scheme:dark}
+.cal-day-title{padding:16px 16px 6px;font-size:16px;font-weight:700}
+.cal-day-count{padding:0 16px 12px;font-size:13px;color:var(--t3)}
+.cal-log-list{padding:0 16px 20px}
+.cal-log{background:var(--card);border:1px solid rgba(76,175,80,.1);border-radius:14px;
+  padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.cal-log .time{font-size:13px;font-weight:700;color:var(--g400);min-width:70px}
+.cal-log .med-name{flex:1;font-size:14px}
+.cal-log .chip{font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px}
+.chip-taken{background:rgba(76,175,80,.15);color:var(--g400)}
+.chip-missed{background:var(--red-bg);color:var(--red)}
+.cal-empty{text-align:center;padding:30px;color:var(--t3);font-size:13px}
+
+/* ---- CAREGIVER ---- */
+.care-body{padding:20px 16px}
+.care-info{background:var(--surface);border:1px solid rgba(76,175,80,.1);border-radius:16px;
+  padding:20px;margin-bottom:20px;font-size:13px;color:var(--t3);line-height:1.7}
+.care-info strong{color:var(--t2)}
+.care-input{display:flex;gap:10px;margin-bottom:20px}
+.care-input input{flex:1;padding:14px 16px;background:var(--surface);
+  border:1.5px solid rgba(76,175,80,.15);border-radius:14px;color:var(--t1);font-size:14px}
+.care-input button{padding:14px 24px;background:var(--g700);border:none;border-radius:14px;
+  color:#fff;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}
+.care-status{list-style:none}
+.care-status li{background:var(--card);border:1px solid rgba(76,175,80,.1);border-radius:14px;
+  padding:14px 16px;margin-bottom:8px;font-size:14px}
+
+/* ---- TOAST ---- */
+.toast{position:fixed;top:calc(20px + var(--safe-top));left:50%;transform:translateX(-50%) translateY(-100px);
+  padding:14px 24px;border-radius:14px;font-size:13px;font-weight:600;z-index:9999;
+  transition:transform .4s cubic-bezier(.2,1,.3,1);max-width:90%;text-align:center;
+  box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{background:var(--g800);color:#fff}
+.toast.error{background:#C62828;color:#fff}
+.toast.warn{background:#E65100;color:#fff}
+
+/* ---- MODAL ---- */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);
+  z-index:900;display:none;align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:24px 24px 0 0;width:100%;max-width:500px;
+  padding:24px;padding-bottom:calc(24px + var(--safe-bottom));max-height:80vh;overflow-y:auto}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:16px}
+.modal .time-slots{display:flex;flex-direction:column;gap:10px}
+.modal .time-slot{display:flex;align-items:center;gap:12px}
+.modal .time-slot label{font-size:14px;font-weight:600;color:var(--t2);min-width:80px}
+.modal .time-slot input{flex:1;padding:12px 14px;background:var(--surface);
+  border:1.5px solid rgba(76,175,80,.15);border-radius:12px;color:var(--t1);font-size:15px;
+  color-scheme:dark}
+.modal .btn{margin-top:16px}
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(76,175,80,.2);border-radius:4px}
+
+/* ---- LOADING SPINNER ---- */
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
 </head>
 <body>
-    <!-- Animated Background Orbs -->
-    <div class="bg-glow">
-        <div class="orb"></div>
-        <div class="orb"></div>
-        <div class="orb"></div>
+
+<!-- ========== SPLASH ========== -->
+<div class="screen active" id="splash">
+  <div class="logo">💊</div>
+  <h1>MediReminder</h1>
+  <p>Never miss a dose again</p>
+</div>
+
+<!-- ========== AUTH ========== -->
+<div class="screen" id="auth">
+  <div class="auth-box">
+    <div class="logo-area">
+      <span>💊</span>
+      <h2>MediReminder</h2>
+      <p>Sign in to manage your medicines</p>
     </div>
+    <div class="auth-error" id="authError"></div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="authEmail" placeholder="your@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="authPass" placeholder="Min 6 characters" autocomplete="current-password">
+    </div>
+    <button class="btn btn-green" id="btnLogin">🔐 Login</button>
+    <button class="btn btn-outline" id="btnRegister">✨ Create Account</button>
+    <div class="forgot-link">
+      <a id="btnForgot">Forgot password?</a>
+    </div>
+  </div>
+</div>
 
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-inner">
-            <a href="#" class="nav-logo">
-                <span class="pill-icon">💊</span>
-                <span>MediReminder</span>
-            </a>
-            <ul class="nav-links">
-                <li><a href="#features">Features</a></li>
-                <li><a href="#tech">Tech Stack</a></li>
-                <li><a href="#setup">Setup</a></li>
-                <li><a href="https://github.com/vaibhavraj082007/MediReminder3" class="nav-cta">⭐ GitHub</a></li>
-            </ul>
-        </div>
-    </nav>
+<!-- ========== DASHBOARD ========== -->
+<div class="screen" id="dashboard">
+  <div class="dash-header">
+    <div class="top">
+      <div class="brand"><span>💊</span><h2>MediReminder</h2></div>
+      <button class="logout-btn" id="btnLogout">Logout</button>
+    </div>
+    <div class="dash-summary" id="dashSummary">Loading...</div>
+  </div>
+  <div class="dash-actions">
+    <div class="dash-action" id="goAdd"><div class="icon">➕</div><div class="label">Add Medicine</div></div>
+    <div class="dash-action" id="goCalendar"><div class="icon">📅</div><div class="label">History</div></div>
+    <div class="dash-action" id="goCaregiver"><div class="icon">👨‍👩‍👧</div><div class="label">Family View</div></div>
+    <div class="dash-action" id="goCode"><div class="icon">🔗</div><div class="label">My Code</div></div>
+  </div>
+  <div class="section-title">Your Medicines</div>
+  <div class="med-list" id="medList"></div>
+</div>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-inner">
-            <div>
-                <div class="hero-badge">
-                    🎓 5th Semester MAD Project
-                </div>
-                <h1>
-                    Never Miss<br>
-                    a <span class="gradient">Dose</span> Again.
-                </h1>
-                <p>
-                    MediReminder is a smart Android app that helps you manage medications,
-                    track your adherence score, get timely reminders, and keep family
-                    caregivers in the loop — all in one beautiful interface.
-                </p>
-                <div class="hero-buttons">
-                    <a href="https://github.com/vaibhavraj082007/MediReminder3" class="btn-primary">
-                        📦 View Source Code
-                    </a>
-                    <a href="#setup" class="btn-secondary">
-                        🚀 Get Started
-                    </a>
-                </div>
-            </div>
+<!-- ========== ADD MEDICINE ========== -->
+<div class="screen" id="addMed">
+  <div class="page-header">
+    <button class="back" id="addBack">←</button>
+    <h2>Add Medicine</h2>
+  </div>
+  <div class="form-body">
+    <div class="field"><label>Medicine Name</label><input type="text" id="medName" placeholder="e.g. Paracetamol"></div>
+    <div class="field"><label>Tablets per Dose</label><input type="number" id="medDose" placeholder="e.g. 2" min="1" max="20"></div>
+    <div class="field"><label>Times per Day</label><input type="number" id="medTimes" placeholder="e.g. 3" min="1" max="10"></div>
+    <div class="field"><label>Stock (total tablets)</label><input type="number" id="medStock" placeholder="e.g. 30" min="0"></div>
+    <div class="field"><label>Expiry Date</label><input type="date" id="medExpiry"></div>
+    <button class="picker-btn" id="btnPickTimes">⏰ Pick Reminder Times</button>
+    <button class="btn btn-green" id="btnSaveMed" style="margin-top:20px">💾 Save Medicine</button>
+  </div>
+</div>
 
-            <!-- Phone Mockup -->
-            <div class="phone-mockup">
-                <div class="phone">
-                    <div class="phone-screen">
-                        <div class="phone-header">
-                            <div class="app-icon">💊</div>
-                            <h3>MediReminder</h3>
-                            <p>3 medicines • Adherence: 87%</p>
-                        </div>
+<!-- ========== CALENDAR ========== -->
+<div class="screen" id="calendar">
+  <div class="page-header">
+    <button class="back" id="calBack">←</button>
+    <h2>History Calendar</h2>
+  </div>
+  <div class="cal-stats">
+    <div class="cal-stat taken"><div class="num" id="calTaken">0</div><div class="lbl">Taken</div></div>
+    <div class="cal-stat missed"><div class="num" id="calMissed">0</div><div class="lbl">Missed</div></div>
+    <div class="cal-stat score"><div class="num" id="calScore">--</div><div class="lbl">Score</div></div>
+  </div>
+  <div class="cal-date-picker"><input type="date" id="calDate"></div>
+  <div class="cal-day-title" id="calDayTitle">Today</div>
+  <div class="cal-day-count" id="calDayCount"></div>
+  <div class="cal-log-list" id="calLogList"></div>
+</div>
 
-                        <div class="phone-card">
-                            <div class="icon">💊</div>
-                            <div class="info">
-                                <h4>Paracetamol</h4>
-                                <p>2 tablets • 3x/day</p>
-                            </div>
-                            <span class="status status-taken">✓ Taken</span>
-                        </div>
+<!-- ========== CAREGIVER ========== -->
+<div class="screen" id="caregiver">
+  <div class="page-header">
+    <button class="back" id="careBack">←</button>
+    <h2>Family View</h2>
+  </div>
+  <div class="care-body">
+    <div class="care-info">
+      <strong>How it works:</strong><br>
+      Ask your family member to share their <strong>User Code</strong> from the dashboard.<br>
+      Paste it below and tap <strong>Watch</strong> to see their medication status in real-time.
+    </div>
+    <div class="care-input">
+      <input type="text" id="careCode" placeholder="Paste patient code">
+      <button id="btnWatch">Watch</button>
+    </div>
+    <ul class="care-status" id="careList">
+      <li style="color:var(--t3)">Enter a code to start monitoring</li>
+    </ul>
+  </div>
+</div>
 
-                        <div class="phone-card">
-                            <div class="icon">🩹</div>
-                            <div class="info">
-                                <h4>Vitamin D3</h4>
-                                <p>1 tablet • 1x/day</p>
-                            </div>
-                            <span class="status status-pending">⏳ 2:00 PM</span>
-                        </div>
+<!-- ========== TIME PICKER MODAL ========== -->
+<div class="modal-overlay" id="timeModal">
+  <div class="modal">
+    <h3>⏰ Set Reminder Times</h3>
+    <div class="time-slots" id="timeSlots"></div>
+    <button class="btn btn-green" id="btnConfirmTimes">✓ Confirm Times</button>
+  </div>
+</div>
 
-                        <div class="phone-card">
-                            <div class="icon">💉</div>
-                            <div class="info">
-                                <h4>Metformin</h4>
-                                <p>1 tablet • 2x/day</p>
-                            </div>
-                            <span class="status status-missed">✕ Missed</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+<!-- ========== TOAST ========== -->
+<div class="toast" id="toast"></div>
 
-    <!-- Features Section -->
-    <section class="features" id="features">
-        <div class="section-header">
-            <h2>Packed with Features</h2>
-            <p>Everything you need to stay on top of your medication schedule and health goals.</p>
-        </div>
+<!-- ========== FIREBASE SDK ========== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-        <div class="features-grid">
-            <div class="feature-card">
-                <span class="feature-icon">🔐</span>
-                <h3>Secure Authentication</h3>
-                <p>Firebase-powered login and registration with email/password. Includes password reset and friendly error messages for every scenario.</p>
-            </div>
+<script>
+// ==================== FIREBASE CONFIG ====================
+firebase.initializeApp({
+  apiKey: "AIzaSyD6hAn8YlmyZKve0YyUJ2Rk325bm9T850o",
+  authDomain: "medi-care3.firebaseapp.com",
+  databaseURL: "https://medi-care3-default-rtdb.firebaseio.com",
+  projectId: "medi-care3",
+  storageBucket: "medi-care3.firebasestorage.app",
+  messagingSenderId: "259241874151",
+  appId: "1:259241874151:web:medireminder3pwa"
+});
+const auth = firebase.auth();
+const db = firebase.database();
 
-            <div class="feature-card">
-                <span class="feature-icon">⏰</span>
-                <h3>Smart Reminders</h3>
-                <p>Set multiple daily reminder times for each medicine. Exact alarms ensure you're notified on time, even with the app closed.</p>
-            </div>
+// ==================== HELPERS ====================
+const $ = id => document.getElementById(id);
+const DAY_MS = 86400000;
+const LOCK_MS = 7200000; // 2 hours
 
-            <div class="feature-card">
-                <span class="feature-icon">📊</span>
-                <h3>Adherence Tracking</h3>
-                <p>Real-time adherence score shows your taken vs. missed dose percentage. Stay motivated and accountable every day.</p>
-            </div>
+function show(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(screenId).classList.add('active');
+}
 
-            <div class="feature-card">
-                <span class="feature-icon">📦</span>
-                <h3>Stock Management</h3>
-                <p>Track your medicine inventory with automatic low-stock and out-of-stock alerts. Never run out unexpectedly again.</p>
-            </div>
+function toast(msg, type = 'success') {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
 
-            <div class="feature-card">
-                <span class="feature-icon">📅</span>
-                <h3>Calendar History</h3>
-                <p>Beautiful calendar view to browse your dose history day-by-day. See exactly what you took and what you missed.</p>
-            </div>
+function formatDate(d) {
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
 
-            <div class="feature-card">
-                <span class="feature-icon">👨‍👩‍👧</span>
-                <h3>Caregiver Mode</h3>
-                <p>Share your unique code with family members so they can monitor your medication adherence remotely. Peace of mind for everyone.</p>
-            </div>
-        </div>
-    </section>
+function formatTime12(h, m) {
+  const ampm = h < 12 ? 'AM' : 'PM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${String(h12).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ampm}`;
+}
 
-    <!-- Tech Stack Section -->
-    <section class="tech-section" id="tech">
-        <div class="section-header">
-            <h2>Built With</h2>
-            <p>Modern Android technologies for a reliable, performant experience.</p>
-        </div>
+function dateStr(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 
-        <div class="tech-grid">
-            <div class="tech-chip">
-                <span class="emoji">☕</span>
-                <div class="tech-info">
-                    <h4>Java</h4>
-                    <p>Core Language</p>
-                </div>
-            </div>
-            <div class="tech-chip">
-                <span class="emoji">🤖</span>
-                <div class="tech-info">
-                    <h4>Android SDK</h4>
-                    <p>API 26 – 35</p>
-                </div>
-            </div>
-            <div class="tech-chip">
-                <span class="emoji">🔥</span>
-                <div class="tech-info">
-                    <h4>Firebase Auth</h4>
-                    <p>Authentication</p>
-                </div>
-            </div>
-            <div class="tech-chip">
-                <span class="emoji">🗄️</span>
-                <div class="tech-info">
-                    <h4>SQLite</h4>
-                    <p>Local Database</p>
-                </div>
-            </div>
-            <div class="tech-chip">
-                <span class="emoji">🔔</span>
-                <div class="tech-info">
-                    <h4>AlarmManager</h4>
-                    <p>Exact Scheduling</p>
-                </div>
-            </div>
-            <div class="tech-chip">
-                <span class="emoji">🎨</span>
-                <div class="tech-info">
-                    <h4>XML Layouts</h4>
-                    <p>Custom UI</p>
-                </div>
-            </div>
-        </div>
-    </section>
+// ==================== LOCAL DATABASE (localStorage) ====================
+const DB = {
+  getMeds() { return JSON.parse(localStorage.getItem('medi_meds') || '[]'); },
+  saveMeds(list) { localStorage.setItem('medi_meds', JSON.stringify(list)); },
+  addMed(m) { const l = this.getMeds(); m.id = Date.now(); l.push(m); this.saveMeds(l); return m.id; },
+  deleteMed(id) { this.saveMeds(this.getMeds().filter(m => m.id !== id)); this.deleteLogs(id); },
+  reduceStock(id, qty) {
+    const l = this.getMeds();
+    const m = l.find(x => x.id === id);
+    if (m) { m.stock = Math.max(0, m.stock - qty); this.saveMeds(l); }
+  },
+  getLogs() { return JSON.parse(localStorage.getItem('medi_logs') || '[]'); },
+  saveLogs(list) { localStorage.setItem('medi_logs', JSON.stringify(list)); },
+  addLog(medId, medName, status) {
+    const l = this.getLogs();
+    l.push({ medId, medName, status, time: Date.now() });
+    this.saveLogs(l);
+  },
+  deleteLogs(medId) { this.saveLogs(this.getLogs().filter(l => l.medId !== medId)); },
+  countStatus(status) { return this.getLogs().filter(l => l.status === status).length; },
+  countDay(day, status) {
+    return this.getLogs().filter(l => l.status === status && dateStr(new Date(l.time)) === day).length;
+  },
+  forDay(day) {
+    return this.getLogs()
+      .filter(l => dateStr(new Date(l.time)) === day)
+      .sort((a,b) => a.time - b.time);
+  },
+  getLock(id) { return parseInt(localStorage.getItem('lock_'+id) || '0'); },
+  setLock(id) { localStorage.setItem('lock_'+id, String(Date.now())); },
+  clearLock(id) { localStorage.removeItem('lock_'+id); }
+};
 
-    <!-- Setup Section -->
-    <section class="setup" id="setup">
-        <div class="section-header">
-            <h2>Get Started in 3 Steps</h2>
-            <p>Clone, configure Firebase, and run — it's that simple.</p>
-        </div>
+// ==================== REMINDER SYSTEM ====================
+const Reminders = {
+  timers: {},
 
-        <div class="setup-steps">
-            <div class="step-card">
-                <div class="step-number">1</div>
-                <h3>Clone the Repo</h3>
-                <p>Download the source code from GitHub to your local machine.</p>
-                <code>git clone https://github.com/vaibhavraj082007/MediReminder3.git</code>
-            </div>
-
-            <div class="step-card">
-                <div class="step-number">2</div>
-                <h3>Setup Firebase</h3>
-                <p>Create a Firebase project, add your Android app, download <strong>google-services.json</strong> and enable Email/Password auth.</p>
-            </div>
-
-            <div class="step-card">
-                <div class="step-number">3</div>
-                <h3>Build & Run</h3>
-                <p>Open in Android Studio, let Gradle sync, connect a device or emulator, and hit Run!</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <p>
-            Made with ❤️ by <a href="https://github.com/vaibhavraj082007">Vaibhav Tripathi</a>
-            &nbsp;•&nbsp; 5th Semester MAD Project &nbsp;•&nbsp;
-            <a href="https://github.com/vaibhavraj082007/MediReminder3">View on GitHub</a>
-        </p>
-    </footer>
-
-    <!-- Intersection Observer for scroll animations -->
-    <script>
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, { threshold: 0.1 });
-
-        document.querySelectorAll('.feature-card, .tech-chip, .step-card').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(30px)';
-            el.style.transition = 'all 0.6s ease-out';
-            observer.observe(el);
+  scheduleAll() {
+    // Clear existing
+    Object.values(this.timers).forEach(t => clearTimeout(t));
+    this.timers = {};
+    // Schedule new
+    DB.getMeds().forEach(med => {
+      if (med.reminderTimes) {
+        med.reminderTimes.forEach((rt, i) => {
+          this.scheduleOne(med, rt, i);
         });
-    </script>
+      }
+    });
+  },
+
+  scheduleOne(med, rt, index) {
+    const now = new Date();
+    const target = new Date();
+    target.setHours(rt.h, rt.m, 0, 0);
+    if (target <= now) target.setDate(target.getDate() + 1);
+    const delay = target - now;
+    const key = med.id + '_' + index;
+    this.timers[key] = setTimeout(() => {
+      this.fire(med, rt);
+      // Reschedule for tomorrow
+      this.scheduleOne(med, rt, index);
+    }, delay);
+  },
+
+  fire(med, rt) {
+    // Browser notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('💊 Time for your medicine', {
+        body: `Take ${med.doseQty} tablet(s) of ${med.name}`,
+        icon: '💊',
+        tag: 'medi-' + med.id,
+        requireInteraction: true
+      });
+    }
+    // In-app toast
+    toast(`⏰ Time to take ${med.doseQty} tablet(s) of ${med.name}`, 'warn');
+  },
+
+  requestPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }
+};
+
+// ==================== SPLASH ====================
+setTimeout(() => {
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      show('dashboard');
+      renderDashboard();
+      Reminders.scheduleAll();
+      Reminders.requestPermission();
+    } else {
+      show('auth');
+    }
+  });
+}, 2000);
+
+// ==================== AUTH ====================
+$('btnLogin').onclick = async () => {
+  const email = $('authEmail').value.trim();
+  const pass = $('authPass').value;
+  if (!email || !pass) return showAuthErr('Enter email and password');
+  hideAuthErr();
+  $('btnLogin').innerHTML = '<span class="spinner"></span>';
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+    toast('Welcome back! ✔');
+  } catch(e) { showAuthErr(friendlyErr(e)); }
+  $('btnLogin').innerHTML = '🔐 Login';
+};
+
+$('btnRegister').onclick = async () => {
+  const email = $('authEmail').value.trim();
+  const pass = $('authPass').value;
+  if (!email || !pass) return showAuthErr('Enter email and password');
+  if (pass.length < 6) return showAuthErr('Password must be at least 6 characters');
+  hideAuthErr();
+  $('btnRegister').innerHTML = '<span class="spinner"></span>';
+  try {
+    await auth.createUserWithEmailAndPassword(email, pass);
+    toast('Account created! ✨');
+  } catch(e) { showAuthErr(friendlyErr(e)); }
+  $('btnRegister').innerHTML = '✨ Create Account';
+};
+
+$('btnForgot').onclick = async () => {
+  const email = $('authEmail').value.trim();
+  if (!email) return showAuthErr('Type your email first, then tap Forgot password');
+  try {
+    await auth.sendPasswordResetEmail(email);
+    toast('Reset link sent to ' + email);
+  } catch(e) { showAuthErr(friendlyErr(e)); }
+};
+
+function showAuthErr(msg) { $('authError').textContent = '⚠ ' + msg; $('authError').classList.add('show'); }
+function hideAuthErr() { $('authError').classList.remove('show'); }
+
+function friendlyErr(e) {
+  const c = e.code || '';
+  if (c.includes('network')) return 'No internet connection.';
+  if (c.includes('too-many')) return 'Too many attempts. Wait a few minutes.';
+  if (c.includes('weak-password')) return 'Password too weak. Use at least 6 characters.';
+  if (c.includes('email-already')) return 'Email already registered. Tap Login.';
+  if (c.includes('user-not-found')) return 'No account with this email. Tap Create Account.';
+  if (c.includes('wrong-password') || c.includes('invalid-credential')) return 'Wrong email or password.';
+  if (c.includes('invalid-email')) return 'Invalid email address.';
+  return e.message || 'Something went wrong.';
+}
+
+$('btnLogout').onclick = () => { auth.signOut(); show('auth'); toast('Logged out'); };
+
+// ==================== DASHBOARD ====================
+function renderDashboard() {
+  const meds = DB.getMeds();
+  const taken = DB.countStatus('taken');
+  const missed = DB.countStatus('missed');
+  const count = meds.length;
+
+  if (taken + missed === 0) {
+    $('dashSummary').textContent = `${count} medicine(s) added  •  Tap Taken after each dose`;
+  } else {
+    const score = Math.round((taken * 100) / (taken + missed));
+    $('dashSummary').textContent = `${count} medicine(s)  •  Adherence: ${score}%  (${taken} taken, ${missed} missed)`;
+  }
+
+  const list = $('medList');
+  if (meds.length === 0) {
+    list.innerHTML = '<div class="med-empty">No medicines yet.<br>Tap + Add Medicine to get started!</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  const now = Date.now();
+
+  // Check low stock
+  const lowStockMsgs = [];
+
+  meds.forEach(med => {
+    const perDay = Math.max(1, med.doseQty * med.timesPerDay);
+    const daysLeft = Math.floor(med.stock / perDay);
+    const daysToExpiry = Math.floor((med.expiry - now) / DAY_MS);
+    const stockEndMs = now + daysLeft * DAY_MS;
+
+    let cardClass = 'green';
+    let warning = '';
+    if (med.expiry < now) { cardClass = 'grey'; warning = '⚠ EXPIRED — do not use'; }
+    else if (med.stock === 0) { cardClass = 'red'; warning = '⚠ Out of stock — refill now'; }
+    else if (daysLeft <= 3) { cardClass = 'red'; warning = `⚠ Only ${daysLeft} day(s) of stock left`; }
+    else if (daysToExpiry < 30) { cardClass = 'orange'; warning = `⚠ Expires in ${daysToExpiry} days`; }
+    else if (med.expiry < stockEndMs) { cardClass = 'orange'; warning = '⚠ Expires before stock finishes'; }
+
+    if (med.stock <= 0) lowStockMsgs.push(`${med.name}: OUT of stock`);
+    else if (daysLeft <= 3) lowStockMsgs.push(`${med.name}: ${med.stock} left (${daysLeft} days)`);
+
+    const expiryDate = new Date(med.expiry);
+    const expiryStr = `${expiryDate.getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][expiryDate.getMonth()]} ${expiryDate.getFullYear()}`;
+
+    // Lock check
+    const lastTaken = DB.getLock(med.id);
+    const lockEnd = lastTaken + LOCK_MS;
+    let takenBtnHtml = '';
+    if (lastTaken && now < lockEnd) {
+      const mins = Math.ceil((lockEnd - now) / 60000);
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      takenBtnHtml = `<button class="btn-taken locked" disabled>🔒 ${h > 0 ? h + 'h ' : ''}${m}m</button>`;
+    } else {
+      takenBtnHtml = `<button class="btn-taken" data-id="${med.id}">✅ Taken</button>`;
+    }
+
+    // Reminder times display
+    let timesStr = '';
+    if (med.reminderTimes && med.reminderTimes.length) {
+      timesStr = med.reminderTimes.map(t => formatTime12(t.h, t.m)).join(', ');
+    }
+
+    const card = document.createElement('div');
+    card.className = 'med-card ' + cardClass;
+    card.innerHTML = `
+      <div class="name">${med.name}</div>
+      <div class="detail">${med.doseQty} tablet(s), ${med.timesPerDay}x/day  •  ${med.stock} left (${daysLeft} days)</div>
+      <div class="detail">Expiry: ${expiryStr}${timesStr ? '  •  ⏰ ' + timesStr : ''}</div>
+      ${warning ? '<div class="warning">' + warning + '</div>' : ''}
+      <div class="actions">
+        ${takenBtnHtml}
+        <button class="btn-skip" data-id="${med.id}">⏭ Skip</button>
+        <button class="btn-delete" data-id="${med.id}">🗑</button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+
+  // Attach events
+  list.querySelectorAll('.btn-taken:not(.locked)').forEach(btn => {
+    btn.onclick = () => takeDose(parseInt(btn.dataset.id));
+  });
+  list.querySelectorAll('.btn-skip').forEach(btn => {
+    btn.onclick = () => skipDose(parseInt(btn.dataset.id));
+  });
+  list.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.onclick = () => { if (confirm('Delete this medicine?')) deleteMed(parseInt(btn.dataset.id)); };
+  });
+
+  // Show low stock alerts
+  if (lowStockMsgs.length > 0) {
+    setTimeout(() => toast('Low stock: ' + lowStockMsgs[0], 'error'), 500);
+  }
+}
+
+function takeDose(id) {
+  const meds = DB.getMeds();
+  const med = meds.find(m => m.id === id);
+  if (!med) return;
+
+  if (med.expiry < Date.now()) return toast('This medicine is expired', 'error');
+  if (med.stock <= 0) return toast('No stock left', 'error');
+
+  // Check lock
+  const last = DB.getLock(id);
+  if (last && Date.now() < last + LOCK_MS) return toast('Taken is locked for 2 hours', 'warn');
+
+  DB.setLock(id);
+  DB.reduceStock(id, med.doseQty);
+  DB.addLog(id, med.name, 'taken');
+  sendToFirebase(med.name, 'Taken at ' + formatTime12(new Date().getHours(), new Date().getMinutes()));
+  toast('✅ ' + med.name + ' — dose recorded');
+
+  const updated = DB.getMeds().find(m => m.id === id);
+  if (updated) {
+    const perDay = Math.max(1, updated.doseQty * updated.timesPerDay);
+    if (updated.stock === 0) toast(med.name + ' is OUT of stock!', 'error');
+    else if (Math.floor(updated.stock / perDay) <= 3) toast('Low stock: ' + updated.stock + ' left', 'warn');
+  }
+
+  renderDashboard();
+}
+
+function skipDose(id) {
+  const med = DB.getMeds().find(m => m.id === id);
+  if (!med) return;
+  DB.addLog(id, med.name, 'missed');
+  sendToFirebase(med.name, 'Missed / skipped');
+  toast('Marked as missed', 'warn');
+  renderDashboard();
+}
+
+function deleteMed(id) {
+  DB.clearLock(id);
+  DB.deleteMed(id);
+  Reminders.scheduleAll();
+  toast('Medicine deleted');
+  renderDashboard();
+}
+
+function sendToFirebase(medName, status) {
+  const user = auth.currentUser;
+  if (!user) return;
+  const key = medName.replace(/[.#$\[\]\/]/g, '_');
+  db.ref('patients/' + user.uid + '/status/' + key).set(medName + ': ' + status);
+}
+
+// Navigation
+$('goAdd').onclick = () => { clearAddForm(); show('addMed'); };
+$('goCalendar').onclick = () => { show('calendar'); renderCalendar(); };
+$('goCaregiver').onclick = () => show('caregiver');
+$('goCode').onclick = () => {
+  const uid = auth.currentUser?.uid;
+  if (!uid) return;
+  if (navigator.share) {
+    navigator.share({ title: 'My MediReminder Code', text: uid });
+  } else {
+    navigator.clipboard.writeText(uid).then(() => toast('Code copied to clipboard!'));
+  }
+};
+$('addBack').onclick = () => { show('dashboard'); renderDashboard(); };
+$('calBack').onclick = () => { show('dashboard'); renderDashboard(); };
+$('careBack').onclick = () => { show('dashboard'); renderDashboard(); };
+
+// ==================== ADD MEDICINE ====================
+let reminderTimes = [];
+
+function clearAddForm() {
+  $('medName').value = '';
+  $('medDose').value = '';
+  $('medTimes').value = '';
+  $('medStock').value = '';
+  $('medExpiry').value = '';
+  $('btnPickTimes').textContent = '⏰ Pick Reminder Times';
+  $('btnPickTimes').classList.remove('selected');
+  reminderTimes = [];
+}
+
+$('btnPickTimes').onclick = () => {
+  const n = parseInt($('medTimes').value);
+  if (!n || n < 1 || n > 10) return toast('Enter times per day first (1-10)', 'warn');
+
+  const slots = $('timeSlots');
+  slots.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    const existing = reminderTimes[i] || { h: 8 + i * 4, m: 0 };
+    const hh = String(existing.h).padStart(2, '0');
+    const mm = String(existing.m).padStart(2, '0');
+    const div = document.createElement('div');
+    div.className = 'time-slot';
+    div.innerHTML = `<label>Dose ${i+1} of ${n}</label><input type="time" value="${hh}:${mm}" data-idx="${i}">`;
+    slots.appendChild(div);
+  }
+  $('timeModal').classList.add('show');
+};
+
+$('btnConfirmTimes').onclick = () => {
+  const inputs = $('timeSlots').querySelectorAll('input[type="time"]');
+  reminderTimes = [];
+  inputs.forEach(inp => {
+    const [h, m] = inp.value.split(':').map(Number);
+    reminderTimes.push({ h, m });
+  });
+  $('timeModal').classList.remove('show');
+  const display = reminderTimes.map(t => formatTime12(t.h, t.m)).join(', ');
+  $('btnPickTimes').textContent = '⏰ ' + display;
+  $('btnPickTimes').classList.add('selected');
+};
+
+$('timeModal').onclick = (e) => { if (e.target === $('timeModal')) $('timeModal').classList.remove('show'); };
+
+$('btnSaveMed').onclick = () => {
+  const name = $('medName').value.trim();
+  const doseQty = parseInt($('medDose').value);
+  const timesPerDay = parseInt($('medTimes').value);
+  const stock = parseInt($('medStock').value);
+  const expiryVal = $('medExpiry').value;
+
+  if (!name || !doseQty || !timesPerDay || isNaN(stock) || !expiryVal) {
+    return toast('Please fill all fields', 'error');
+  }
+  if (doseQty < 1 || timesPerDay < 1) return toast('Dose and times must be at least 1', 'error');
+  if (reminderTimes.length !== timesPerDay) {
+    return toast('Please pick all ' + timesPerDay + ' reminder times', 'error');
+  }
+
+  const expiry = new Date(expiryVal + 'T23:59:59').getTime();
+
+  const med = { name, doseQty, timesPerDay, stock, expiry, reminderTimes, hour: reminderTimes[0].h, minute: reminderTimes[0].m };
+  DB.addMed(med);
+  Reminders.scheduleAll();
+  Reminders.requestPermission();
+  toast('💊 ' + name + ' saved!');
+  show('dashboard');
+  renderDashboard();
+};
+
+// ==================== CALENDAR ====================
+function renderCalendar() {
+  const taken = DB.countStatus('taken');
+  const missed = DB.countStatus('missed');
+  $('calTaken').textContent = taken;
+  $('calMissed').textContent = missed;
+  $('calScore').textContent = (taken + missed === 0) ? '--' : Math.round((taken * 100) / (taken + missed)) + '%';
+
+  const today = dateStr(new Date());
+  $('calDate').value = today;
+  renderDay(today);
+
+  $('calDate').onchange = () => renderDay($('calDate').value);
+}
+
+function renderDay(day) {
+  const d = new Date(day + 'T00:00:00');
+  $('calDayTitle').textContent = formatDate(d);
+  const taken = DB.countDay(day, 'taken');
+  const missed = DB.countDay(day, 'missed');
+  $('calDayCount').textContent = `${taken} taken  •  ${missed} missed`;
+
+  const logs = DB.forDay(day);
+  const list = $('calLogList');
+  if (logs.length === 0) {
+    list.innerHTML = '<div class="cal-empty">No records for this day</div>';
+    return;
+  }
+  list.innerHTML = '';
+  logs.forEach(log => {
+    const t = new Date(log.time);
+    const div = document.createElement('div');
+    div.className = 'cal-log';
+    div.innerHTML = `
+      <span class="time">${formatTime12(t.getHours(), t.getMinutes())}</span>
+      <span class="med-name">${log.medName}</span>
+      <span class="chip ${log.status === 'taken' ? 'chip-taken' : 'chip-missed'}">${log.status === 'taken' ? '✔ Taken' : '✖ Missed'}</span>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// ==================== CAREGIVER ====================
+let careRef = null;
+let careListener = null;
+
+$('btnWatch').onclick = () => {
+  const code = $('careCode').value.trim();
+  if (!code) return toast('Enter the patient\'s code', 'warn');
+
+  if (careRef && careListener) careRef.off('value', careListener);
+
+  careRef = db.ref('patients/' + code + '/status');
+  careListener = careRef.on('value', snap => {
+    const list = $('careList');
+    list.innerHTML = '';
+    if (!snap.exists()) {
+      list.innerHTML = '<li style="color:var(--t3)">No data yet for this code</li>';
+      return;
+    }
+    snap.forEach(child => {
+      const li = document.createElement('li');
+      li.textContent = child.val();
+      list.appendChild(li);
+    });
+  }, err => {
+    toast('Error: ' + err.message, 'error');
+  });
+
+  toast('Monitoring started ✔');
+};
+
+// ==================== SERVICE WORKER ====================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+// ==================== AUTO-REFRESH DASHBOARD ====================
+setInterval(() => {
+  if ($('dashboard').classList.contains('active')) renderDashboard();
+}, 30000);
+</script>
 </body>
 </html>
