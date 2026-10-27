@@ -198,6 +198,26 @@ input,button,select,textarea{font-family:inherit;outline:none}
 .spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);
   border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---- ALARM OVERLAY ---- */
+.alarm-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:10000;
+  background:rgba(0,0,0,.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  display:none;align-items:center;justify-content:center;flex-direction:column}
+.alarm-overlay.show{display:flex}
+.alarm-box{text-align:center;padding:40px 30px;max-width:360px;width:90%}
+.alarm-icon{font-size:80px;animation:alarmBounce 0.5s ease infinite alternate}
+@keyframes alarmBounce{from{transform:scale(1) rotate(-5deg)}to{transform:scale(1.2) rotate(5deg)}}
+.alarm-pulse{width:120px;height:120px;border-radius:50%;background:rgba(76,175,80,.15);
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);animation:alarmPulse 1s ease infinite}
+@keyframes alarmPulse{0%{transform:translate(-50%,-60%) scale(1);opacity:.6}100%{transform:translate(-50%,-60%) scale(2.5);opacity:0}}
+.alarm-title{font-size:24px;font-weight:800;margin-top:24px;color:#fff}
+.alarm-detail{font-size:16px;color:var(--t2);margin-top:10px}
+.alarm-buttons{display:flex;flex-direction:column;gap:12px;margin-top:32px}
+.alarm-btn{padding:18px 32px;border:none;border-radius:16px;font-size:16px;font-weight:700;
+  cursor:pointer;transition:all .2s}
+.alarm-btn:active{transform:scale(.95)}
+.alarm-stop{background:linear-gradient(135deg,#C62828,#D32F2F);color:#fff}
+.alarm-snooze{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);color:#fff}
 </style>
 </head>
 <body>
@@ -318,6 +338,20 @@ input,button,select,textarea{font-family:inherit;outline:none}
   </div>
 </div>
 
+<!-- ========== ALARM OVERLAY ========== -->
+<div class="alarm-overlay" id="alarmOverlay">
+  <div class="alarm-box">
+    <div class="alarm-icon">💊</div>
+    <div class="alarm-pulse"></div>
+    <h2 class="alarm-title">Time for your medicine!</h2>
+    <p class="alarm-detail" id="alarmDetail">Take 1 tablet(s) of Medicine</p>
+    <div class="alarm-buttons">
+      <button class="alarm-btn alarm-stop" id="alarmStop">🛑 Stop Alarm</button>
+      <button class="alarm-btn alarm-snooze" id="alarmSnooze">⏰ Snooze 10 min</button>
+    </div>
+  </div>
+</div>
+
 <!-- ========== TOAST ========== -->
 <div class="toast" id="toast"></div>
 
@@ -408,9 +442,75 @@ const DB = {
   clearLock(id) { localStorage.removeItem('lock_'+id); }
 };
 
+// ==================== ALARM SOUND ENGINE ====================
+const AlarmSound = {
+  audioCtx: null,
+  oscillator: null,
+  gainNode: null,
+  isPlaying: false,
+  autoStopTimer: null,
+  vibrationInterval: null,
+
+  play() {
+    if (this.isPlaying) return;
+    this.isPlaying = true;
+    try {
+      this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      this.gainNode = this.audioCtx.createGain();
+      this.gainNode.connect(this.audioCtx.destination);
+      this.gainNode.gain.value = 0.6;
+      this.playPattern();
+    } catch(e) { console.log('Audio not supported'); }
+
+    // Vibration pattern (if supported)
+    if ('vibrate' in navigator) {
+      this.vibrationInterval = setInterval(() => navigator.vibrate([800, 400, 800]), 2000);
+      navigator.vibrate([800, 400, 800]);
+    }
+
+    // Auto-stop after 30 seconds
+    this.autoStopTimer = setTimeout(() => this.stop(), 30000);
+  },
+
+  playPattern() {
+    if (!this.isPlaying || !this.audioCtx) return;
+    // Two-tone alarm beep pattern
+    const now = this.audioCtx.currentTime;
+    for (let i = 0; i < 6; i++) {
+      const osc = this.audioCtx.createOscillator();
+      const g = this.audioCtx.createGain();
+      osc.connect(g);
+      g.connect(this.audioCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = i % 2 === 0 ? 880 : 660;
+      g.gain.value = 0.5;
+      g.gain.setValueAtTime(0.5, now + i * 0.3);
+      g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.3 + 0.25);
+      osc.start(now + i * 0.3);
+      osc.stop(now + i * 0.3 + 0.25);
+    }
+    // Repeat pattern
+    if (this.isPlaying) {
+      setTimeout(() => this.playPattern(), 2400);
+    }
+  },
+
+  stop() {
+    this.isPlaying = false;
+    if (this.autoStopTimer) clearTimeout(this.autoStopTimer);
+    if (this.vibrationInterval) clearInterval(this.vibrationInterval);
+    if ('vibrate' in navigator) navigator.vibrate(0);
+    if (this.audioCtx) {
+      try { this.audioCtx.close(); } catch(e) {}
+      this.audioCtx = null;
+    }
+  }
+};
+
 // ==================== REMINDER SYSTEM ====================
 const Reminders = {
   timers: {},
+  currentAlarmMed: null,
 
   scheduleAll() {
     // Clear existing
@@ -441,17 +541,37 @@ const Reminders = {
   },
 
   fire(med, rt) {
-    // Browser notification
+    this.currentAlarmMed = med;
+
+    // Browser notification (works even when tab is background)
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('💊 Time for your medicine', {
+      new Notification('💊 Time for your medicine!', {
         body: `Take ${med.doseQty} tablet(s) of ${med.name}`,
-        icon: '💊',
         tag: 'medi-' + med.id,
-        requireInteraction: true
+        requireInteraction: true,
+        silent: false
       });
     }
-    // In-app toast
-    toast(`⏰ Time to take ${med.doseQty} tablet(s) of ${med.name}`, 'warn');
+
+    // Full-screen alarm overlay with sound
+    $('alarmDetail').textContent = `Take ${med.doseQty} tablet(s) of ${med.name}`;
+    $('alarmOverlay').classList.add('show');
+    AlarmSound.play();
+  },
+
+  stopAlarm() {
+    AlarmSound.stop();
+    $('alarmOverlay').classList.remove('show');
+    this.currentAlarmMed = null;
+  },
+
+  snooze() {
+    const med = this.currentAlarmMed;
+    this.stopAlarm();
+    toast('⏰ Snoozed for 10 minutes', 'warn');
+    if (med) {
+      setTimeout(() => this.fire(med), 10 * 60 * 1000);
+    }
   },
 
   requestPermission() {
@@ -460,6 +580,10 @@ const Reminders = {
     }
   }
 };
+
+// Alarm overlay buttons
+$('alarmStop').onclick = () => Reminders.stopAlarm();
+$('alarmSnooze').onclick = () => Reminders.snooze();
 
 // ==================== SPLASH ====================
 setTimeout(() => {
