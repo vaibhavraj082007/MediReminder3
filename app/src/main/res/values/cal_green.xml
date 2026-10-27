@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="CalGreen">
+        <item name="android:colorAccent">#43A047</item>
+        <item name="android:colorControlActivated">#43A047</item>
+        <item name="colorAccent">#43A047</item>
+    </style>
+</resources>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F1F8F7">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_gradient"
+        android:paddingTop="36dp"
+        android:paddingBottom="16dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
+
+        <Button android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:text="Back"
+            android:textSize="13sp"
+            android:backgroundTint="#00695C"
+            android:textColor="#FFFFFF"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="14dp"
+            android:text="Add Medicine"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp"
+                android:background="@drawable/bg_card">
+
+                <EditText android:id="@+id/etName"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:background="@drawable/bg_input"
+                    android:paddingLeft="16dp" android:paddingRight="16dp"
+                    android:hint="Medicine name"
+                    android:textColor="#212121" android:textColorHint="#9E9E9E"/>
+
+                <EditText android:id="@+id/etDose"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_input"
+                    android:paddingLeft="16dp" android:paddingRight="16dp"
+                    android:hint="Tablets per dose (e.g. 1)"
+                    android:textColor="#212121" android:textColorHint="#9E9E9E"
+                    android:inputType="number"/>
+
+                <EditText android:id="@+id/etTimes"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_input"
+                    android:paddingLeft="16dp" android:paddingRight="16dp"
+                    android:hint="Times per day (e.g. 2)"
+                    android:textColor="#212121" android:textColorHint="#9E9E9E"
+                    android:inputType="number"/>
+
+                <EditText android:id="@+id/etStock"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_input"
+                    android:paddingLeft="16dp" android:paddingRight="16dp"
+                    android:hint="Total tablets in the strip/bottle"
+                    android:textColor="#212121" android:textColorHint="#9E9E9E"
+                    android:inputType="number"/>
+
+                <Button android:id="@+id/btnExpiry"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:layout_marginTop="16dp"
+                    android:text="Pick Expiry Date"
+                    android:backgroundTint="#E0F2F1" android:textColor="#00695C"/>
+
+                <Button android:id="@+id/btnTime"
+                    android:layout_width="match_parent" android:layout_height="52dp"
+                    android:layout_marginTop="8dp"
+                    android:text="Pick First Reminder Time"
+                    android:backgroundTint="#E0F2F1" android:textColor="#00695C"/>
+
+                <Button android:id="@+id/btnSave"
+                    android:layout_width="match_parent" android:layout_height="54dp"
+                    android:layout_marginTop="18dp"
+                    android:text="Save Medicine"
+                    android:textSize="16sp"
+                    android:backgroundTint="#00897B" android:textColor="#FFFFFF"/>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
